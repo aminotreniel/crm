@@ -1,0 +1,12 @@
+{
+  "name": "financial-crm",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "npm --workspace @fincrm/web run dev",
+    "build": "npm --workspace @fincrm/web run build",
+    "start": "npm --workspace @fincrm/web run start",
+    "typecheck": "npm --workspace @fincrm/web run typecheck"
+  }
+}
