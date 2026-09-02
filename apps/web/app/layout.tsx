@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cortada Financial CRM",
-  description: "Client relationships, guided work, and an auditable activity record.",
+  title: "Harbor Financial CRM",
+  description: "A commercial-funding CRM concept for guided, high-context capital operations.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -1,5 +1,5 @@
-import FundingCRM from "../features/funding/FundingCRM";
+import LandingPage from "../features/landing/LandingPage";
 
 export default function Page() {
-  return <FundingCRM />;
+  return <LandingPage />;
 }
