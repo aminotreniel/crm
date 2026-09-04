@@ -2,7 +2,8 @@
 
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 
-import { initialBusinesses } from "./data";
+import { saveBusiness } from "./remote";
+import { initAnalytics } from "../../lib/analytics";
 import { BusinessWorkspace } from "./components/BusinessWorkspace";
 import { FundingShell } from "./components/FundingShell";
 import { CapitalPartners, Dashboard, DocumentExceptions, Pipeline, Reports, WorkQueue } from "./components/OperationalViews";
@@ -15,7 +16,7 @@ function themeForCurrentTime(): Theme {
   return new Date().getHours() >= 18 ? "dark" : "light";
 }
 
-export default function FundingCRM() {
+export default function FundingCRM({ initialBusinesses }: { initialBusinesses: Business[] }) {
   const [businesses, setBusinesses] = useState<Business[]>(initialBusinesses);
   const [selectedId, setSelectedId] = useState("sf");
   const [view, setView] = useState<View>("dashboard");
@@ -25,6 +26,10 @@ export default function FundingCRM() {
   const [auditOnly, setAuditOnly] = useState(false);
   const [theme, setTheme] = useState<Theme>("light");
   const [hasManualTheme, setHasManualTheme] = useState(false);
+
+  useEffect(() => {
+    void initAnalytics();
+  }, []);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("cortadaTheme");
@@ -57,7 +62,13 @@ export default function FundingCRM() {
   }
 
   function updateBusiness(id: string, update: (business: Business) => Business) {
-    setBusinesses((current) => current.map((business) => business.id === id ? update(business) : business));
+    const target = businesses.find((business) => business.id === id);
+    if (!target) return;
+    const next = update(target);
+    setBusinesses((current) => current.map((business) => business.id === id ? next : business));
+    // Persist the edit. Deliberately not awaited: the UI has already applied it
+    // and a failed write must not make the demo feel broken.
+    void saveBusiness(next);
   }
 
   function openBusiness(id: string) {
@@ -90,6 +101,7 @@ export default function FundingCRM() {
     const initials = name.split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase();
     const business: Business = { id: crypto.randomUUID(), initials, name, industry: String(form.get("industry")), location: "Pending", owner: "Leah Morgan", contact, phone: "Pending", stage: "Pre qualified", requested: String(form.get("requested")), product: "To be matched", revenue: "Pending", timeInBusiness: "Pending", risk: "Low", score: "Pre qualification pending", decisionDue: "12 hour review target", owners: [{ name: contact, share: "Pending", role: "Authorized representative", initials: contact.split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase() }], documents: [], offers: [], tasks: [{ id: crypto.randomUUID(), title: "Contact lead and begin qualification", due: "Today", type: "SLA", done: false }], audits: [addEvent("Application created manually", "Lead intake")], notes: ["New application created from CRM."] };
     setBusinesses((current) => [business, ...current]);
+    void saveBusiness(business);
     setSelectedId(business.id);
     setView("businesses");
     setTab("Overview");

@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// ---------------------------------------------------------------------------
+// Shared demo database: alldb-a1804
+//
+// Several unrelated demo projects share this one Firestore instance. Every
+// project is confined to its own subtree under /apps/{appId}, so no two
+// projects can read or write each other's documents by accident:
+//
+//   apps/sunday   -> digicamproject  (Sunday Camera store)
+//   apps/grain    -> digicam         (GRAIN digicam archive)
+//   apps/fincrm   -> crm             (commercial funding CRM)
+//   apps/aether   -> aether          (design studio landing page)
+//
+// These are unauthenticated client demos, so reads and writes are open within
+// that namespace. That is a deliberate trade-off: anyone who reads the public
+// repo can write here. Two things keep the demos presentable anyway:
+//
+//   1. Seeded showcase data and visitor-generated data live in separate
+//      collections. Nothing written at runtime is read back into the showcase
+//      surfaces, so a vandalised write cannot blank a client demo.
+//   2. `npm run seed` is idempotent — rerun it to restore showcase data.
+//
+// Anything outside /apps is denied, so a stray client cannot create junk at
+// the database root.
+// ---------------------------------------------------------------------------
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /apps/{appId} {
+      allow read, write: if true;
+    }
+    match /apps/{appId}/{document=**} {
+      allow read, write: if true;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
